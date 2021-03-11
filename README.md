@@ -34,7 +34,7 @@ export class YourStack extends cdk.Stack {
     // - https://other.your-domain.tld
     new DomainRedirector(this, 'Redirector', {
       domains: ['www.your-domain.tld', 'other.your-domain.tld'],
-      targetDomain: 'somewhere-else.tld,
+      targetDomain: 'somewhere-else.tld',
       hostedZone,
     });
   }
