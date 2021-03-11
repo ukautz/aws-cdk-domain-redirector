@@ -1,0 +1,386 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Domain Redirector Intended setup Has consistent snapshot 1`] = `
+Object {
+  "Mappings": Object {
+    "AWSCloudFrontPartitionHostedZoneIdMap": Object {
+      "aws": Object {
+        "zoneId": "Z2FDTNDATAQYW2",
+      },
+      "aws-cn": Object {
+        "zoneId": "Z3RFFRIM2A3IF5",
+      },
+    },
+  },
+  "Parameters": Object {
+    "AssetParameters19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2ArtifactHash652C125C": Object {
+      "Description": "Artifact hash for asset \\"19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2\\"",
+      "Type": "String",
+    },
+    "AssetParameters19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2S3BucketFCCD3A76": Object {
+      "Description": "S3 bucket for asset \\"19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2\\"",
+      "Type": "String",
+    },
+    "AssetParameters19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2S3VersionKey07AF06B6": Object {
+      "Description": "S3 key for asset version \\"19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2\\"",
+      "Type": "String",
+    },
+  },
+  "Resources": Object {
+    "HostedZoneDB99F866": Object {
+      "Properties": Object {
+        "Name": "domain.tld.",
+      },
+      "Type": "AWS::Route53::HostedZone",
+    },
+    "MyTestConstructBucketC00BBB11": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "BucketEncryption": Object {
+          "ServerSideEncryptionConfiguration": Array [
+            Object {
+              "ServerSideEncryptionByDefault": Object {
+                "SSEAlgorithm": "AES256",
+              },
+            },
+          ],
+        },
+        "WebsiteConfiguration": Object {
+          "RedirectAllRequestsTo": Object {
+            "HostName": "target.tld",
+            "Protocol": "https",
+          },
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "MyTestConstructBucketPolicyE5FFA623": Object {
+      "Properties": Object {
+        "Bucket": Object {
+          "Ref": "MyTestConstructBucketC00BBB11",
+        },
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    Object {
+                      "Fn::GetAtt": Array [
+                        "MyTestConstructBucketC00BBB11",
+                        "Arn",
+                      ],
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "MyTestConstructCachePolicy03369574": Object {
+      "Properties": Object {
+        "CachePolicyConfig": Object {
+          "DefaultTTL": 3600,
+          "MaxTTL": 31536000,
+          "MinTTL": 0,
+          "Name": "TestStackMyTestConstructCachePolicyD0D91B2C",
+          "ParametersInCacheKeyAndForwardedToOrigin": Object {
+            "CookiesConfig": Object {
+              "CookieBehavior": "none",
+            },
+            "EnableAcceptEncodingBrotli": false,
+            "EnableAcceptEncodingGzip": false,
+            "HeadersConfig": Object {
+              "HeaderBehavior": "none",
+            },
+            "QueryStringsConfig": Object {
+              "QueryStringBehavior": "none",
+            },
+          },
+        },
+      },
+      "Type": "AWS::CloudFront::CachePolicy",
+    },
+    "MyTestConstructCertificateCertificateRequestorFunctionBE59448E": Object {
+      "DependsOn": Array [
+        "MyTestConstructCertificateCertificateRequestorFunctionServiceRoleDefaultPolicy36F812A7",
+        "MyTestConstructCertificateCertificateRequestorFunctionServiceRoleF0CE0CC7",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Ref": "AssetParameters19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2S3BucketFCCD3A76",
+          },
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Fn::Select": Array [
+                    0,
+                    Object {
+                      "Fn::Split": Array [
+                        "||",
+                        Object {
+                          "Ref": "AssetParameters19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2S3VersionKey07AF06B6",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                Object {
+                  "Fn::Select": Array [
+                    1,
+                    Object {
+                      "Fn::Split": Array [
+                        "||",
+                        Object {
+                          "Ref": "AssetParameters19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2S3VersionKey07AF06B6",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            ],
+          },
+        },
+        "Handler": "index.certificateRequestHandler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "MyTestConstructCertificateCertificateRequestorFunctionServiceRoleF0CE0CC7",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs10.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "MyTestConstructCertificateCertificateRequestorFunctionServiceRoleDefaultPolicy36F812A7": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "acm:RequestCertificate",
+                "acm:DescribeCertificate",
+                "acm:DeleteCertificate",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": "route53:GetChange",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": "route53:changeResourceRecordSets",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":route53:::hostedzone/",
+                    Object {
+                      "Ref": "HostedZoneDB99F866",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "MyTestConstructCertificateCertificateRequestorFunctionServiceRoleDefaultPolicy36F812A7",
+        "Roles": Array [
+          Object {
+            "Ref": "MyTestConstructCertificateCertificateRequestorFunctionServiceRoleF0CE0CC7",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "MyTestConstructCertificateCertificateRequestorFunctionServiceRoleF0CE0CC7": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "MyTestConstructCertificateCertificateRequestorResource5D7905BC": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "DomainName": "www.domain.tld",
+        "HostedZoneId": Object {
+          "Ref": "HostedZoneDB99F866",
+        },
+        "Region": "us-east-1",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "MyTestConstructCertificateCertificateRequestorFunctionBE59448E",
+            "Arn",
+          ],
+        },
+        "SubjectAlternativeNames": Array [
+          "other.domain.tld",
+        ],
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "MyTestConstructDistribution60637A64": Object {
+      "Properties": Object {
+        "DistributionConfig": Object {
+          "Aliases": Array [
+            "www.domain.tld",
+            "other.domain.tld",
+          ],
+          "DefaultCacheBehavior": Object {
+            "CachePolicyId": Object {
+              "Ref": "MyTestConstructCachePolicy03369574",
+            },
+            "Compress": true,
+            "TargetOriginId": "TestStackMyTestConstructDistributionOrigin16656F6BD",
+            "ViewerProtocolPolicy": "allow-all",
+          },
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Origins": Array [
+            Object {
+              "CustomOriginConfig": Object {
+                "OriginProtocolPolicy": "http-only",
+                "OriginSSLProtocols": Array [
+                  "TLSv1.2",
+                ],
+              },
+              "DomainName": Object {
+                "Fn::Select": Array [
+                  2,
+                  Object {
+                    "Fn::Split": Array [
+                      "/",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "MyTestConstructBucketC00BBB11",
+                          "WebsiteURL",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              "Id": "TestStackMyTestConstructDistributionOrigin16656F6BD",
+            },
+          ],
+          "ViewerCertificate": Object {
+            "AcmCertificateArn": Object {
+              "Fn::GetAtt": Array [
+                "MyTestConstructCertificateCertificateRequestorResource5D7905BC",
+                "Arn",
+              ],
+            },
+            "MinimumProtocolVersion": "TLSv1.2_2019",
+            "SslSupportMethod": "sni-only",
+          },
+        },
+      },
+      "Type": "AWS::CloudFront::Distribution",
+    },
+    "MyTestConstructRecordotherdomaintldF7815C85": Object {
+      "Properties": Object {
+        "AliasTarget": Object {
+          "DNSName": Object {
+            "Fn::GetAtt": Array [
+              "MyTestConstructDistribution60637A64",
+              "DomainName",
+            ],
+          },
+          "HostedZoneId": Object {
+            "Fn::FindInMap": Array [
+              "AWSCloudFrontPartitionHostedZoneIdMap",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              "zoneId",
+            ],
+          },
+        },
+        "HostedZoneId": Object {
+          "Ref": "HostedZoneDB99F866",
+        },
+        "Name": "other.domain.tld.",
+        "Type": "A",
+      },
+      "Type": "AWS::Route53::RecordSet",
+    },
+    "MyTestConstructRecordwwwdomaintldA4BD1578": Object {
+      "Properties": Object {
+        "AliasTarget": Object {
+          "DNSName": Object {
+            "Fn::GetAtt": Array [
+              "MyTestConstructDistribution60637A64",
+              "DomainName",
+            ],
+          },
+          "HostedZoneId": Object {
+            "Fn::FindInMap": Array [
+              "AWSCloudFrontPartitionHostedZoneIdMap",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              "zoneId",
+            ],
+          },
+        },
+        "HostedZoneId": Object {
+          "Ref": "HostedZoneDB99F866",
+        },
+        "Name": "www.domain.tld.",
+        "Type": "A",
+      },
+      "Type": "AWS::Route53::RecordSet",
+    },
+  },
+}
+`;

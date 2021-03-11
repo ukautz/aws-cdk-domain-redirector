@@ -1,6 +1,6 @@
 {
-  "name": "redirector",
-  "version": "0.1.0",
+  "name": "@ukautz/aws-cdk-domain-redirector",
+  "version": "1.92.0-alpha1",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
@@ -17,9 +17,21 @@
     "typescript": "~3.9.7"
   },
   "peerDependencies": {
+    "@aws-cdk/aws-certificatemanager": "1.92.0",
+    "@aws-cdk/aws-cloudfront": "1.92.0",
+    "@aws-cdk/aws-cloudfront-origins": "1.92.0",
+    "@aws-cdk/aws-route53": "1.92.0",
+    "@aws-cdk/aws-route53-targets": "1.92.0",
+    "@aws-cdk/aws-s3": "1.92.0",
     "@aws-cdk/core": "1.92.0"
   },
   "dependencies": {
+    "@aws-cdk/aws-certificatemanager": "1.92.0",
+    "@aws-cdk/aws-cloudfront": "1.92.0",
+    "@aws-cdk/aws-cloudfront-origins": "1.92.0",
+    "@aws-cdk/aws-route53": "1.92.0",
+    "@aws-cdk/aws-route53-targets": "1.92.0",
+    "@aws-cdk/aws-s3": "1.92.0",
     "@aws-cdk/core": "1.92.0"
   }
 }
