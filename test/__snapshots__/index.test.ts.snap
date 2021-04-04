@@ -93,7 +93,17 @@ Object {
           "DefaultTTL": 3600,
           "MaxTTL": 31536000,
           "MinTTL": 0,
-          "Name": "TestStackMyTestConstructCachePolicyD0D91B2C",
+          "Name": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "TestStackMyTestConstructCachePolicyD0D91B2C-",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+              ],
+            ],
+          },
           "ParametersInCacheKeyAndForwardedToOrigin": Object {
             "CookiesConfig": Object {
               "CookieBehavior": "none",
