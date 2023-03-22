@@ -1,5 +1,13 @@
 {
   "name": "@ukautz/aws-cdk-domain-redirector",
+  "homepage": "https://github.com/ukautz/aws-cdk-domain-redirector",
+  "bugs": {
+    "url": "https://github.com/ukautz/aws-cdk-domain-redirector/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "2.0.0-alpha1",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
