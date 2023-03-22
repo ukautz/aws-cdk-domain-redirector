@@ -1,7 +1,9 @@
-import { expect as expectCDK, countResources, haveResource, SynthUtils, haveResourceLike } from '@aws-cdk/assert';
-import * as cdk from '@aws-cdk/core';
-import * as route53 from '@aws-cdk/aws-route53';
+import { Template } from 'aws-cdk-lib/assertions';
+import { aws_route53 as route53, aws_cloudfront as cloudfront, aws_cloudformation as cloudformation } from 'aws-cdk-lib';
+import * as cdk from 'aws-cdk-lib';
 import { DomainRedirector, DomainRedirectorProps } from '../lib';
+import { IConstruct } from 'constructs';
+
 
 /*
  * Example test
@@ -27,87 +29,91 @@ describe('Domain Redirector', () => {
   });
 });
 
+function getChild(stack: cdk.Stack, names: string[]): IConstruct {
+  let current: IConstruct = stack;
+  names.forEach((name) => {
+    current = current.node.findChild(name)
+  });
+  return current;
+}
+
 function assertRecords(stack: cdk.Stack) {
+  const template = Template.fromStack(stack);
+  const distribution = getChild(stack, ["MyTestConstruct", "Distribution"]) as cloudfront.Distribution;
   describe('Route53', () => {
     it('Creates Records', () => {
-      expectCDK(stack).to(countResources('AWS::Route53::RecordSet', 2));
+      template.resourceCountIs('AWS::Route53::RecordSet', 2);
     });
     it('Has record for www domain', () => {
-      expectCDK(stack).to(
-        haveResourceLike('AWS::Route53::RecordSet', {
-          Name: 'www.domain.tld.',
-          Type: 'A',
-          AliasTarget: {
-            DNSName: undefined,
-          },
-        })
-      );
+      template.hasResourceProperties('AWS::Route53::RecordSet', {
+        Name: 'www.domain.tld.',
+        Type: 'A',
+        AliasTarget: {
+          DNSName: stack.resolve(distribution.domainName),
+        },
+      })
     });
     it('Has record for other domain', () => {
-      expectCDK(stack).to(
-        haveResourceLike('AWS::Route53::RecordSet', {
-          Name: 'other.domain.tld.',
-          Type: 'A',
-          AliasTarget: {
-            DNSName: undefined,
-          },
-        })
-      );
+      template.hasResourceProperties('AWS::Route53::RecordSet', {
+        Name: 'other.domain.tld.',
+        Type: 'A',
+        AliasTarget: {
+          DNSName: stack.resolve(distribution.domainName),
+        },
+      })
     });
   });
 }
 
 function assertCloudFrontDistribution(stack: cdk.Stack) {
+  const template = Template.fromStack(stack);
   describe('CloudFront', () => {
     it('Creates distribution', () => {
-      expectCDK(stack).to(countResources('AWS::CloudFront::Distribution', 1));
+      template.resourceCountIs('AWS::CloudFront::Distribution', 1);
     });
     it('Associates all domains', () => {
-      expectCDK(stack).to(
-        haveResourceLike('AWS::CloudFront::Distribution', {
-          DistributionConfig: {
-            Aliases: ['www.domain.tld', 'other.domain.tld'],
-          },
-        })
-      );
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: {
+          Aliases: ['www.domain.tld', 'other.domain.tld'],
+        },
+      })
     });
     it('Has certificate associated', () => {
-      expectCDK(stack).to(
-        haveResourceLike('AWS::CloudFront::Distribution', {
-          DistributionConfig: {
-            ViewerCertificate: {
-              AcmCertificateArn: undefined,
-            },
+      const certificate = getChild(stack, ["MyTestConstruct", "Certificate", "CertificateRequestorResource"]) as cloudformation.CfnCustomResource;
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: {
+          ViewerCertificate: {
+            AcmCertificateArn: stack.resolve(certificate.getAtt('Arn')),
           },
-        })
-      );
+        },
+      })
     });
   });
 }
 
 function assertRedirectBucket(stack: cdk.Stack) {
+  const template = Template.fromStack(stack);
   describe('S3', () => {
     it('Creates bucket', () => {
-      expectCDK(stack).to(countResources('AWS::S3::Bucket', 1));
+      template.resourceCountIs('AWS::S3::Bucket', 1);
     });
     it('Forwards to target', () => {
-      expectCDK(stack).to(
-        haveResourceLike('AWS::S3::Bucket', {
-          WebsiteConfiguration: {
-            RedirectAllRequestsTo: {
-              HostName: 'target.tld',
-              Protocol: 'https',
-            },
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        WebsiteConfiguration: {
+          RedirectAllRequestsTo: {
+            HostName: 'target.tld',
+            Protocol: 'https',
           },
-        })
-      );
+        },
+      })
     });
   });
 }
 
 function assertSnapshot(stack: cdk.Stack) {
+  const template = Template.fromStack(stack);
   it('Has consistent snapshot', () => {
-    expect(SynthUtils.toCloudFormation(stack)).toMatchSnapshot();
+    expect(template.toJSON()).toMatchSnapshot()
   });
 }
 

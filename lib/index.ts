@@ -1,10 +1,13 @@
-import * as cdk from '@aws-cdk/core';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as cloudfront from '@aws-cdk/aws-cloudfront';
-import * as origins from '@aws-cdk/aws-cloudfront-origins';
-import * as route53 from '@aws-cdk/aws-route53';
-import * as targets from '@aws-cdk/aws-route53-targets';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import {
+  aws_certificatemanager as acm,
+  aws_cloudfront as cloudfront,
+  aws_cloudfront_origins as origins,
+  aws_route53 as route53,
+  aws_route53_targets as targets,
+  aws_s3 as s3
+} from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 
 const defaultCacheDuration = cdk.Duration.hours(1);
 
@@ -44,12 +47,12 @@ export interface DomainRedirectorProps {
  *
  * @experimental
  */
-export class DomainRedirector extends cdk.Construct {
+export class DomainRedirector extends Construct {
   public readonly bucket: s3.IBucket;
   public readonly certificate: acm.ICertificate;
   public readonly distribution: cloudfront.IDistribution;
 
-  constructor(scope: cdk.Construct, id: string, props: DomainRedirectorProps) {
+  constructor(scope: Construct, id: string, props: DomainRedirectorProps) {
     super(scope, id);
 
     if (props.domains.length === 0) throw new Error('No domains are provided');
