@@ -5,7 +5,7 @@ import {
   aws_cloudfront_origins as origins,
   aws_route53 as route53,
   aws_route53_targets as targets,
-  aws_s3 as s3
+  aws_s3 as s3,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 

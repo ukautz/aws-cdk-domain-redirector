@@ -1,9 +1,12 @@
-import { Template } from 'aws-cdk-lib/assertions';
-import { aws_route53 as route53, aws_cloudfront as cloudfront, aws_cloudformation as cloudformation } from 'aws-cdk-lib';
 import * as cdk from 'aws-cdk-lib';
-import { DomainRedirector, DomainRedirectorProps } from '../lib';
-import { IConstruct } from 'constructs';
-
+import {
+  aws_route53 as route53,
+  type aws_cloudformation as cloudformation,
+  type aws_cloudfront as cloudfront,
+} from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
+import { type IConstruct } from 'constructs';
+import { DomainRedirector, type DomainRedirectorProps } from '../lib';
 
 /*
  * Example test
@@ -29,17 +32,17 @@ describe('Domain Redirector', () => {
   });
 });
 
-function getChild(stack: cdk.Stack, names: string[]): IConstruct {
+function getChild(stack: cdk.Stack, ...names: string[]): IConstruct {
   let current: IConstruct = stack;
   names.forEach((name) => {
-    current = current.node.findChild(name)
+    current = current.node.findChild(name);
   });
   return current;
 }
 
-function assertRecords(stack: cdk.Stack) {
+function assertRecords(stack: cdk.Stack): void {
   const template = Template.fromStack(stack);
-  const distribution = getChild(stack, ["MyTestConstruct", "Distribution"]) as cloudfront.Distribution;
+  const distribution = getChild(stack, 'MyTestConstruct', 'Distribution') as cloudfront.Distribution;
   describe('Route53', () => {
     it('Creates Records', () => {
       template.resourceCountIs('AWS::Route53::RecordSet', 2);
@@ -51,7 +54,7 @@ function assertRecords(stack: cdk.Stack) {
         AliasTarget: {
           DNSName: stack.resolve(distribution.domainName),
         },
-      })
+      });
     });
     it('Has record for other domain', () => {
       template.hasResourceProperties('AWS::Route53::RecordSet', {
@@ -60,12 +63,12 @@ function assertRecords(stack: cdk.Stack) {
         AliasTarget: {
           DNSName: stack.resolve(distribution.domainName),
         },
-      })
+      });
     });
   });
 }
 
-function assertCloudFrontDistribution(stack: cdk.Stack) {
+function assertCloudFrontDistribution(stack: cdk.Stack): void {
   const template = Template.fromStack(stack);
   describe('CloudFront', () => {
     it('Creates distribution', () => {
@@ -76,22 +79,27 @@ function assertCloudFrontDistribution(stack: cdk.Stack) {
         DistributionConfig: {
           Aliases: ['www.domain.tld', 'other.domain.tld'],
         },
-      })
+      });
     });
     it('Has certificate associated', () => {
-      const certificate = getChild(stack, ["MyTestConstruct", "Certificate", "CertificateRequestorResource"]) as cloudformation.CfnCustomResource;
+      const certificate = getChild(
+        stack,
+        'MyTestConstruct',
+        'Certificate',
+        'CertificateRequestorResource'
+      ) as cloudformation.CfnCustomResource;
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
         DistributionConfig: {
           ViewerCertificate: {
             AcmCertificateArn: stack.resolve(certificate.getAtt('Arn')),
           },
         },
-      })
+      });
     });
   });
 }
 
-function assertRedirectBucket(stack: cdk.Stack) {
+function assertRedirectBucket(stack: cdk.Stack): void {
   const template = Template.fromStack(stack);
   describe('S3', () => {
     it('Creates bucket', () => {
@@ -105,15 +113,15 @@ function assertRedirectBucket(stack: cdk.Stack) {
             Protocol: 'https',
           },
         },
-      })
+      });
     });
   });
 }
 
-function assertSnapshot(stack: cdk.Stack) {
+function assertSnapshot(stack: cdk.Stack): void {
   const template = Template.fromStack(stack);
   it('Has consistent snapshot', () => {
-    expect(template.toJSON()).toMatchSnapshot()
+    expect(template.toJSON()).toMatchSnapshot();
   });
 }
 
