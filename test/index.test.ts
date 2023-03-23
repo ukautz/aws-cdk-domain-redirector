@@ -1,9 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import {
-  aws_route53 as route53,
-  type aws_cloudformation as cloudformation,
-  type aws_cloudfront as cloudfront,
-} from 'aws-cdk-lib';
+import { aws_certificatemanager as acm, aws_cloudfront as cloudfront, aws_route53 as route53 } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { type IConstruct } from 'constructs';
 import { DomainRedirector, type DomainRedirectorProps } from '../lib';
@@ -32,12 +28,9 @@ describe('Domain Redirector', () => {
   });
 });
 
-function getChild(stack: cdk.Stack, ...names: string[]): IConstruct {
-  let current: IConstruct = stack;
-  names.forEach((name) => {
-    current = current.node.findChild(name);
-  });
-  return current;
+function getChild(parent: IConstruct, ...names: string[]): IConstruct {
+  const child = parent.node.findChild(names.shift() as string);
+  return names.length ? getChild(child, ...names) : child;
 }
 
 function assertRecords(stack: cdk.Stack): void {
@@ -82,16 +75,11 @@ function assertCloudFrontDistribution(stack: cdk.Stack): void {
       });
     });
     it('Has certificate associated', () => {
-      const certificate = getChild(
-        stack,
-        'MyTestConstruct',
-        'Certificate',
-        'CertificateRequestorResource'
-      ) as cloudformation.CfnCustomResource;
+      const certificate = getChild(stack, 'MyTestConstruct', 'Certificate') as acm.Certificate;
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
         DistributionConfig: {
           ViewerCertificate: {
-            AcmCertificateArn: stack.resolve(certificate.getAtt('Arn')),
+            AcmCertificateArn: stack.resolve(certificate.certificateArn),
           },
         },
       });

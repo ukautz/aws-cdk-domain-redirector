@@ -38,7 +38,9 @@ export interface DomainRedirectorProps {
 }
 
 /**
- * SameDomainRedirector implements a simple CloudFront and S3 based HTTP(S) redirection.
+ * DomainRedirector implements an Level 3 CDK construct, whic
+ *
+ *  simple CloudFront and S3 based HTTP(S) redirection.
  *
  * Resource setup:
  * - S3 Bucket, that redirects all incoming requests to target domain
@@ -59,8 +61,7 @@ export class DomainRedirector extends Construct {
 
     const apex = props.hostedZone.zoneName.replace(/\.+$/, '');
     const invalid = props.domains.filter((domain) => domain != apex && !domain.endsWith('.' + apex));
-    if (invalid.length > 0)
-      throw new Error(`Hosted zone name ${apex} does not match all domains (${invalid.join(', ')})`);
+    if (invalid.length > 0) throw new Error(`Hosted zone name ${apex} does not match domains: ${invalid.join(', ')}`);
 
     this.bucket = this.initBucket(props);
     this.certificate = this.initCertificate(props);
@@ -81,11 +82,10 @@ export class DomainRedirector extends Construct {
   }
 
   private initCertificate(props: DomainRedirectorProps): acm.Certificate {
-    return new acm.DnsValidatedCertificate(this, 'Certificate', {
+    return new acm.Certificate(this, 'Certificate', {
       domainName: props.domains[0],
       ...(props.domains.length > 1 ? { subjectAlternativeNames: props.domains.slice(1) } : {}),
-      hostedZone: props.hostedZone,
-      region: 'us-east-1',
+      validation: acm.CertificateValidation.fromDns(props.hostedZone),
     });
   }
 
