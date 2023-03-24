@@ -9,7 +9,7 @@ It creates the following resources:
 - CloudFront Distribution: Receives requests and return redirections; has certificate installed
 - S3 Bucket: Creates redirection responses to target domain
 
-![Diagram](daomin-redirect.png)
+![Diagram](domain-redirect.png)
 
 Example use-case is redirecting www to non-www, or vice versa, like:
 
