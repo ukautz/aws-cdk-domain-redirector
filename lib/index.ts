@@ -6,6 +6,7 @@ import {
   aws_route53 as route53,
   aws_route53_targets as targets,
   aws_s3 as s3,
+  Stack,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
@@ -82,11 +83,24 @@ export class DomainRedirector extends Construct {
   }
 
   private initCertificate(props: DomainRedirectorProps): acm.Certificate {
-    return new acm.Certificate(this, 'Certificate', {
-      domainName: props.domains[0],
-      ...(props.domains.length > 1 ? { subjectAlternativeNames: props.domains.slice(1) } : {}),
-      validation: acm.CertificateValidation.fromDns(props.hostedZone),
-    });
+    // certificate for CloudFront must be in us-east-1 -> only way to do
+    // is creating additional stack in that region, that holds the certificate
+    // -> while `DnsValidatedCertificate` it is currently the only resources
+    // that does that (create the other stack in us-east-1) -> use that, in case
+    // not in us-east-1
+    // See: https://github.com/aws/aws-cdk/pull/24543
+    return Stack.of(this).region == 'us-east-1'
+      ? new acm.Certificate(this, 'Certificate', {
+          domainName: props.domains[0],
+          ...(props.domains.length > 1 ? { subjectAlternativeNames: props.domains.slice(1) } : {}),
+          validation: acm.CertificateValidation.fromDns(props.hostedZone),
+        })
+      : new acm.DnsValidatedCertificate(this, 'Certificate', {
+          domainName: props.domains[0],
+          ...(props.domains.length > 1 ? { subjectAlternativeNames: props.domains.slice(1) } : {}),
+          hostedZone: props.hostedZone,
+          region: 'us-east-1',
+        });
   }
 
   private initDistribution(props: DomainRedirectorProps): cloudfront.Distribution {
