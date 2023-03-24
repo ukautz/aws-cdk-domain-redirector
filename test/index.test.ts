@@ -26,6 +26,40 @@ describe('Domain Redirector', () => {
       });
     }).toThrowError();
   });
+
+  describe('Non us-east-1 region', () => {
+    const stack = newTestStack({}, 'us-east-2');
+    const template = Template.fromStack(stack);
+
+    assertSnapshot(stack);
+    test('Lambda to manage certificate is created', () => {
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Handler: 'index.certificateRequestHandler',
+      });
+    });
+    test('Custom resource that references certificate is created', () => {
+      template.hasResourceProperties('AWS::CloudFormation::CustomResource', {
+        DomainName: 'www.domain.tld',
+        Region: 'us-east-1',
+      });
+    });
+    test('CloudFront is referencing certificate requestor', () => {
+      const certificate = getChild(
+        stack,
+        'MyTestConstruct',
+        'Certificate',
+        'CertificateRequestorResource'
+      ) as cdk.CustomResource;
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: {
+          Aliases: ['www.domain.tld', 'other.domain.tld'],
+          ViewerCertificate: {
+            AcmCertificateArn: stack.resolve(certificate.getAtt('Arn')),
+          },
+        },
+      });
+    });
+  });
 });
 
 function getChild(parent: IConstruct, ...names: string[]): IConstruct {
@@ -113,9 +147,11 @@ function assertSnapshot(stack: cdk.Stack): void {
   });
 }
 
-function newTestStack(props?: Partial<DomainRedirectorProps>): cdk.Stack {
+function newTestStack(props?: Partial<DomainRedirectorProps>, region?: string): cdk.Stack {
   const app = new cdk.App();
-  const stack = new cdk.Stack(app, 'TestStack');
+  const stack = new cdk.Stack(app, 'TestStack', {
+    env: { region: region || 'us-east-1' },
+  });
   const hostedZone = new route53.HostedZone(stack, 'HostedZone', {
     zoneName: 'domain.tld',
   });
